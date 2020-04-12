@@ -34,7 +34,7 @@ object SpatialQuery extends App{
 		return resultDf.count()
 	}
 
-	def pointsWithinDistanceD = (pointString1:String, pointString2:String, distance:Double) => {
+	def getDistance = (pointString1:String, pointString2:String) => {
 		val pointsA = pointString1.split(",")
 
 		val x_coord_a = pointsA(0).toDouble
@@ -50,17 +50,8 @@ object SpatialQuery extends App{
 	}
 
 	def arePointsWithinDistanceD = (pointString1:String, pointString2:String, distance:Double) => {
-		val pointsA = pointString1.split(",")
 
-		val x_coord_a = pointsA(0).toDouble
-		val y_coord_a = pointsA(1).toDouble
-
-		val pointsB = pointString2.split(",")
-
-		val x_coord_b = pointsB(0).toDouble
-		val y_coord_b = pointsB(1).toDouble
-
-		val distanceBetweenPoints = Math.sqrt(Math.pow(x_coord_b - x_coord_a, 2) + Math.pow(y_coord_b - y_coord_a, 2) )
+		val distanceBetweenPoints = getDistance(pointString1, pointString2)
 		if (distanceBetweenPoints <= distance) true else false
 	}
 
@@ -72,7 +63,6 @@ object SpatialQuery extends App{
 		// YOU NEED TO FILL IN THIS USER DEFINED FUNCTION
 		spark.udf.register("ST_Within",(pointString1:String, pointString2:String, distance:Double)=>(arePointsWithinDistanceD(pointString1, pointString2, distance)))
 		val resultDf = spark.sql("select * from point where ST_Within(point._c0,'"+arg2+"',"+arg3+")")
-		resultDf.withColumn("distance", pointsWithinDistanceD(col("_c0"), arg2, arg3.toDouble))
 		resultDf.show()
 
 		return resultDf.count()
